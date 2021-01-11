@@ -1,0 +1,22 @@
+[BITHUMB]
+connect_key = {key}
+secret_key = {key}
+
+[KORBIT]
+client_id = {id}
+client_secret = {secret}
+username = {username}
+password = {password}
+
+[COINONE]
+access_token = {token}
+secret_key = {key}
+
+[SLACK]
+token = {token}
+
+[MONGODB]
+local_ip = 127.0.0.1
+port = 22010
+user = {username}
+password = {password}
