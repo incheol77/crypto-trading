@@ -1,17 +1,22 @@
 from abc import ABC, abstractmethod
 
 class Machine(ABC):
-    '''
-    @abstractmethod
-    def get_filled_orders(self):
-        """method for getting orders info"""
-        pass
-    '''
-
+    #--------------------#
+    #     Public APIs    #
+    #--------------------#
     @abstractmethod
     def get_ticker(self):
         """method for getting last ticker info"""
         pass
+
+    @abstractmethod
+    def get_transaction_history(self):
+        """method for getting transaction history"""
+        pass
+
+    #--------------------#
+    #    Private APIs    #
+    #--------------------#
 
     '''
     @abstractmethod
