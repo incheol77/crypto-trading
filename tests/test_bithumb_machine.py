@@ -21,5 +21,11 @@ class BithumbMachineTestCase(unittest.TestCase):
         for i in range(10):
             print(tran_hist[i])
 
+    def test_get_order_request(self):
+        print(inspect.stack()[0][3])
+        order_req = self.bithumb_machine.get_order_request("ETH")
+        assert order_req
+        print(order_req)
+
     def tearDown(self):
         pass

@@ -14,6 +14,11 @@ class Machine(ABC):
         """method for getting transaction history"""
         pass
 
+    @abstractmethod
+    def get_order_request(self):
+        """method for getting current order request"""
+        pass
+
     #--------------------#
     #    Private APIs    #
     #--------------------#

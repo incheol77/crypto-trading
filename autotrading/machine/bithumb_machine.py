@@ -23,6 +23,8 @@ class BithumbMachine(Machine):
         print("client secret : ", self.CLIENT_SECRET)
         print("user name : ", self.USER_NAME)
 
+
+
     def get_ticker(self, currency_type=None, payment_currency="KRW"):
         """
         method for getting info of ticker
@@ -113,11 +115,41 @@ class BithumbMachine(Machine):
         orders_api_path = "/public/transaction_history/{currency}_{payment_currency}".format(currency=currency_type, payment_currency=payment_currency)
         # e.g : https://api.bithumb.com/public/transaction_history/ETH_KRW
         url_path = self.BASE_API_URL + orders_api_path
-        print(url_path)
         res = requests.get(url_path, params=params)
         response_json = res.json()
         results = []
         for r in response_json['data']:
             results.append(r)
-
         return results
+
+    def get_order_request(self, currency_type=None, payment_currency="KRW"):
+        """
+        method for getting transaction history
+        using API:
+            GET https://api.bithumb.com/public/orderbook/{order_currency}_{payment_currency}
+                - {order_currency} = 주문 통화(코인), ALL(전체), 기본값 : BTC
+                - {payment_currency} = 결제 통화(마켓), 입력값 : KRW 혹은 BTC
+        :param currency_type: be defined at TRADE_CURRENCY_TYPE
+        :return: current order request
+        - status	결과 상태 코드 (정상: 0000, 그 외 에러 코드 참조)	String
+        - timestamp	타임 스탬프	Integer(String)
+        - order_currency	주문 통화 (코인)	String
+        - payment_currency	결제 통화 (마켓)	String
+        - bids	매수 요청 내역	Array[Object]
+        - asks	매도 요청 내역	Array[Object]
+        - quantity	Currency 수량	Number (String)
+        - price	Currency 거래가	Number (String)
+        """
+        if currency_type is None:
+            raise Exception("Need to currency_type")
+        if currency_type not in self.TRADE_CURRENCY_TYPE:
+            raise Exception("Not support currency type")
+        time.sleep(1)
+        params = {'offset':0, 'count':30}
+        orders_api_path = "/public/orderbook/{currency}_{payment_currency}".format(currency=currency_type, payment_currency=payment_currency)
+        # e.g : https://api.bithumb.com/public/orderbook/ETH_KRW
+        url_path = self.BASE_API_URL + orders_api_path
+        res = requests.get(url_path, params=params)
+        response_json = res.json()
+        return response_json
+
