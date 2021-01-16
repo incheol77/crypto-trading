@@ -11,7 +11,8 @@ class BithumbMachineTestCase(unittest.TestCase):
         print(inspect.stack()[0][3])
         ticker = self.bithumb_machine.get_ticker("ETH")
         assert ticker
-        print(ticker)
+        for key, value in ticker.items():
+            print(key, ": ", value)
 
     def test_get_transaction_history(self):
         print(inspect.stack()[0][3])
