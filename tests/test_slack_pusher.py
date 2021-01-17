@@ -1,7 +1,7 @@
 import unittest
-from autotrading.pusher.slack import PushSlack
+from autotrading.pusher.slack_pusher import PushSlack
 
-class TestSlacker(unittest.TestCase):
+class TestPusherSlack(unittest.TestCase):
     def setUp(self):
         self.pusher = PushSlack()
 
