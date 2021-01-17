@@ -27,5 +27,11 @@ class BithumbMachineTestCase(unittest.TestCase):
         assert order_req
         print(order_req)
 
+    def test_get_wallet_status(self):
+        print(inspect.stack()[0][3])
+        wallet_status = self.bithumb_machine.get_wallet_status("ETH")
+        assert wallet_status
+        print(wallet_status)
+
     def tearDown(self):
         pass

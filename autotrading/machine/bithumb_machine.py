@@ -153,3 +153,56 @@ class BithumbMachine(Machine):
         response_json = res.json()
         return response_json
 
+
+    def microtime(self, get_as_float=False):
+        if get_as_float:
+            return time.time()
+        else:
+            return '%f %d' % math.modf(time.time())
+
+    def usecTime(self):
+        mt = self.microtime(False)
+        mt_array = mt.split(" ")[:2]
+        return mt_array[1] + mt_array[0][2:5]
+
+    def get_nonce(self):
+        return self.usecTime()#str(int(time.time()))
+
+    def get_signature(self, encoded_payload, secret_key):
+        signature = hmac.new(secret_key, encoded_payload, hashlib.sha512)
+        api_sign = base64.b64encode(signature.hexdigest().encode('utf-8'))
+        return api_sign
+
+    def get_wallet_status(self, currency_type=None, payment_currency="KRW"):
+        if currency_type is None:
+            raise Exception("Need to currency_type")
+        if currency_type not in self.TRADE_CURRENCY_TYPE:
+            raise Exception("No support currency type")
+        time.sleep(1)
+        wallet_status_api_path = "/info/balance"
+        endpoint = "/info/balance"
+        url_path = self.BASE_API_URL + wallet_status_api_path
+
+        endpoint_item_array = {
+            "endpoint" : endpoint,
+            "currency" : currency_type
+        }
+
+        uri_array = dict(endpoint_item_array)
+        str_data = urllib.parse.urlencode(uri_array)
+        nonce = self.usecTime()
+        data = endpoint + chr(0) + str_data + chr(0) + nonce
+        utf8_data = data.encode('utf-8')
+
+        key = self.CLIENT_SECRET
+        utf8_key = key.encode('utf-8')
+
+        headers = {'Content-Type': 'application/x-www-form-urlencoded',
+                   'Api-Key': self.CLIENT_ID,
+                   'Api-Sign': self.get_signature(utf8_data, bytes(utf8_key)),
+                   'Api-Nonce': nonce}
+
+        res = requests.post(url_path, headers=headers, data=str_data)
+        result = res.json()
+        return result["data"]
+
