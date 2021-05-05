@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 import time
 import math
@@ -11,7 +13,7 @@ import urllib
 
 class BithumbMachine(Machine):
     BASE_API_URL = "https://api.bithumb.com"
-    TRADE_CURRENCY_TYPE = ["BTC", "ETH", "DASH", "LTC", "ETC", "XRP", "BCH", "XMR", "ZEC", "QTUM", "BTG", "EOS", "XLM"]
+    TRADE_CURRENCY_TYPE = ["BTC", "ETH", "ETC", "XRP", "LTC", "BCH", "QTUM", "BTG", "EOS", "XLM"]
 
     def __init__(self):
         config = configparser.ConfigParser()
@@ -22,8 +24,6 @@ class BithumbMachine(Machine):
         print("client id : ", self.CLIENT_ID)
         print("client secret : ", self.CLIENT_SECRET)
         print("user name : ", self.USER_NAME)
-
-
 
     def get_ticker(self, currency_type=None, payment_currency="KRW"):
         """
@@ -86,6 +86,41 @@ class BithumbMachine(Machine):
         result["fluctate_rate_24H"] = response_json['data']["fluctate_rate_24H"]    # 최근 24시간 변동률
         result["timestamp"] = str(response_json['data']["date"])    # 타임 스탬프
         return result
+
+    def get_current_price(self, currency_type=None, payment_currency="KRW"):
+        """
+        method for getting info of ticker
+        using API:
+            GET https://api.bithumb.com/public/ticker/{order_currency}_{payment_currency}
+                - {order_currency} = 주문 통화(코인), ALL(전체), 기본값 : BTC
+                - {payment_currency} = 결제 통화(마켓), 입력값 : KRW 혹은 BTC
+        :param currency_type: be defined at TRADE_CURRENCY_TYPE
+        :return: last_price info (using dict)
+        - last_price	최근 거래 금액	Number (String)
+        - date	타임 스탬프	Integer(String)
+            : e.g of results
+            'last_price': '93400',
+            'timestamp': '1610781322490'
+        """
+        if currency_type is None:
+            raise Exception('Need to currency type')
+        if currency_type not in self.TRADE_CURRENCY_TYPE:
+            raise Exception('Not support currency type')
+        time.sleep(1)
+
+        ticker_api_path = "/public/ticker/{currency}_{payment_currency}".format(currency=currency_type, payment_currency=payment_currency)
+        # e.g : https://apidocs.bithumb.com/docs/ticker
+        url_path = self.BASE_API_URL + ticker_api_path
+        res = requests.get(url_path)
+        response_json = res.json()
+        result={}
+        result["opening_price"] = response_json['data']["opening_price"]    # 시가 00시 기준
+        result["last_price"] = response_json['data']["closing_price"]    # 종가 00시 기준
+        result["timestamp"] = self.convert_timestamp_to_datetime(response_json['data']["date"])    # 타임 스탬프
+        return result
+
+    def convert_timestamp_to_datetime(self, timestamp):
+        return datetime.fromtimestamp(int(timestamp)/1000)
 
     def get_transaction_history(self, currency_type=None, payment_currency="KRW"):
         """
@@ -154,26 +189,26 @@ class BithumbMachine(Machine):
         return response_json
 
 
-    def microtime(self, get_as_float=False):
+    def micro_time(self, get_as_float=False):
         if get_as_float:
             return time.time()
         else:
             return '%f %d' % math.modf(time.time())
 
-    def usecTime(self):
-        mt = self.microtime(False)
+    def usec_time(self):
+        mt = self.micro_time(False)
         mt_array = mt.split(" ")[:2]
         return mt_array[1] + mt_array[0][2:5]
 
     def get_nonce(self):
-        return self.usecTime()#str(int(time.time()))
+        return self.usec_time()#str(int(time.time()))
 
     def get_signature(self, encoded_payload, secret_key):
         signature = hmac.new(secret_key, encoded_payload, hashlib.sha512)
         api_sign = base64.b64encode(signature.hexdigest().encode('utf-8'))
         return api_sign
 
-    def get_wallet_status(self, currency_type=None, payment_currency="KRW"):
+    def get_wallet_status(self, currency_type="KRW"):
         if currency_type is None:
             raise Exception("Need to currency_type")
         if currency_type not in self.TRADE_CURRENCY_TYPE:
@@ -190,7 +225,7 @@ class BithumbMachine(Machine):
 
         uri_array = dict(endpoint_item_array)
         str_data = urllib.parse.urlencode(uri_array)
-        nonce = self.usecTime()
+        nonce = self.usec_time()
         data = endpoint + chr(0) + str_data + chr(0) + nonce
         utf8_data = data.encode('utf-8')
 
@@ -204,5 +239,5 @@ class BithumbMachine(Machine):
 
         res = requests.post(url_path, headers=headers, data=str_data)
         result = res.json()
-        return result["data"]
+        return result
 
